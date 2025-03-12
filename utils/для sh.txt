@@ -1,0 +1,12 @@
+
+#!/bin/bash
+
+# Запуск сервера Go
+echo "Запуск сервера Go..."
+cd ../backend || exit
+go run main.go &
+
+# Запуск фронтенда с Vite
+echo "Запуск фронтенда..."
+cd ../frontend || exit
+npm run dev

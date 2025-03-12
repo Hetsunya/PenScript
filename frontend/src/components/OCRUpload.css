@@ -1,0 +1,126 @@
+/* src/components/OCRUpload.css */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #121212; /* Темный фон */
+    color: #e0e0e0; /* Светлый текст */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 20px;
+  }
+  
+  h1, h2 {
+    text-align: center;
+    color: #e0e0e0;
+    font-weight: 600;
+  }
+  
+  h1 {
+    margin-bottom: 20px;
+    font-size: 2rem;
+  }
+  
+  h2 {
+    color: #bbb;
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+  }
+  
+  form {
+    background-color: #333; /* Темный фон формы */
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 600px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  form:hover {
+    transform: scale(1.02);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+  }
+  
+  input[type="file"] {
+    margin-bottom: 20px;
+    padding: 12px;
+    border: 2px solid #555; /* Светлый бордер */
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #444; /* Темный фон инпута */
+    color: #e0e0e0; /* Светлый текст */
+    transition: border 0.3s ease;
+  }
+  
+  input[type="file"]:hover {
+    border-color: #4CAF50;
+  }
+  
+  button {
+    padding: 12px 20px;
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  button:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+  }
+  
+  button:disabled {
+    background-color: #777;
+    cursor: not-allowed;
+  }
+  
+  div {
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  pre {
+    background-color: #222; /* Темный фон для вывода текста */
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 90%;
+    margin: 20px auto;
+    word-wrap: break-word;
+    font-size: 1rem;
+    white-space: pre-wrap;
+    color: #e0e0e0; /* Светлый текст */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .error {
+    color: #ff4d4d;
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 1.2rem;
+  }
+  
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  form, h1, h2 {
+    animation: fadeIn 1s ease-out;
+  }
+  
