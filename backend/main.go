@@ -134,7 +134,7 @@ func main() {
 
 	// Настройка CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5174"}, // Укажите адрес фронтенда
+		AllowedOrigins:   []string{"http://localhost:5173"}, // Укажите адрес фронтенда
 		AllowedMethods:   []string{"GET", "POST"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,
