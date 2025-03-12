@@ -20,10 +20,10 @@ const OCRUpload = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!image) return;
-
+  
     setLoading(true);
     setError(""); 
-
+  
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64Image = reader.result?.toString().split(",")[1]; 
@@ -32,9 +32,9 @@ const OCRUpload = () => {
         setLoading(false);
         return;
       }
-
+  
       console.log("Отправляем изображение на сервер:", base64Image); // Отладочный вывод
-
+  
       try {
         const response = await axios.post("http://localhost:8080/ocr", { image: base64Image }, {
           headers: {
@@ -46,10 +46,13 @@ const OCRUpload = () => {
       } catch (err: any) {
         console.error("Ошибка при отправке запроса:", err);
         if (err.response) {
+          console.log("Ответ от сервера (ошибка):", err.response);
           setError(`Ошибка: ${err.response.status} - ${err.response.data.error || 'Неизвестная ошибка на сервере'}`);
         } else if (err.request) {
+          console.log("Запрос не был отправлен:", err.request);
           setError("Ошибка при отправке запроса. Проверьте подключение к серверу.");
         } else {
+          console.log("Ошибка неизвестного типа:", err.message);
           setError("Неизвестная ошибка: " + err.message);
         }
       } finally {
@@ -58,6 +61,7 @@ const OCRUpload = () => {
     };
     reader.readAsDataURL(image);
   };
+  
 
   return (
     <div className="ocr-upload-container">

@@ -19,13 +19,12 @@ type OCRRequest struct {
 
 // OCRResponse - структура ответа от Yandex OCR
 type OCRResponse struct {
-	TextAnnotation struct {
-		FullText string `json:"fullText"`
-	} `json:"textAnnotation"`
-	Error struct {
-		Code    int    `json:"code"`
-		Message string `json:"message"`
-	} `json:"error"`
+	Result struct {
+		TextAnnotation struct {
+			FullText string `json:"fullText"`
+		} `json:"textAnnotation"`
+	} `json:"result"`
+	Error interface{} `json:"error"`
 }
 
 // APIRequest - структура входного запроса в наш API
@@ -60,8 +59,8 @@ func sendOCRRequest(encodedImage string) (*OCRResponse, error) {
 	}
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer YOUR_IAM_TOKEN")
-	req.Header.Add("x-folder-id", "YOUR_FOLDER_ID")
+	req.Header.Add("Authorization", "Bearer t1.9euelZrHjJqLmsyNnYvLjsmPkc-Uie3rnpWalJ3GmszNz8ySzpOdys3HjZrl9PdxNDpB-e9Xchz73fT3MWM3QfnvV3Ic-83n9euelZqLm5KKl46TmIqezcnNy5SLjO_8xeuelZqLm5KKl46TmIqezcnNy5SLjA.FiXxkrVdyLjSFP41JEh9W0FCD8aAsoRi2-JhvSoHezRGzFxDiMnLpwDzGt3n99oPh2MhONQtw15okDcIPDyOBA")
+	req.Header.Add("x-folder-id", "b1g1g3i36s0esvqv39re")
 	req.Header.Add("x-data-logging-enabled", "true")
 
 	client := &http.Client{}
@@ -76,10 +75,23 @@ func sendOCRRequest(encodedImage string) (*OCRResponse, error) {
 		return nil, fmt.Errorf("ошибка чтения ответа: %v", err)
 	}
 
+	fmt.Println("Ответ от Yandex OCR:", string(respBody)) // Для отладки
+
 	var ocrResponse OCRResponse
 	err = json.Unmarshal(respBody, &ocrResponse)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка разбора ответа: %v", err)
+	}
+
+	// Если есть ошибка в ответе, обрабатываем её
+	if ocrResponse.Error != nil {
+		// Если ошибка — это строка, то выводим её как строку
+		switch err := ocrResponse.Error.(type) {
+		case string:
+			return nil, fmt.Errorf("ошибка OCR: %v", err)
+		default:
+			return nil, fmt.Errorf("неизвестная ошибка OCR: %v", ocrResponse.Error)
+		}
 	}
 
 	return &ocrResponse, nil
@@ -99,12 +111,15 @@ func handleOCR(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ocrResponse.Error.Code != 0 {
-		json.NewEncoder(w).Encode(APIResponse{Error: ocrResponse.Error.Message})
+	// Проверяем, есть ли ошибка в ответе от Yandex OCR
+	if ocrResponse.Result.TextAnnotation.FullText == "" {
+		// Если текст пустой, возвращаем ошибку
+		json.NewEncoder(w).Encode(APIResponse{Error: "Не удалось распознать текст"})
 		return
 	}
 
-	json.NewEncoder(w).Encode(APIResponse{Text: ocrResponse.TextAnnotation.FullText})
+	// Возвращаем распознанный текст
+	json.NewEncoder(w).Encode(APIResponse{Text: ocrResponse.Result.TextAnnotation.FullText})
 }
 
 func main() {
