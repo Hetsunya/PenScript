@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+
+	"github.com/rs/cors"
 )
 
 // OCRRequest - структура запроса к Yandex OCR
@@ -36,6 +38,10 @@ type APIRequest struct {
 type APIResponse struct {
 	Text  string `json:"text"`
 	Error string `json:"error,omitempty"`
+}
+
+func handler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "OK")
 }
 
 // sendOCRRequest отправляет изображение в Yandex OCR
@@ -123,7 +129,20 @@ func handleOCR(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/ocr", handleOCR)
-	fmt.Println("Сервер запущен на порту 8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ocr", handleOCR)
+
+	// Настройка CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5174"}, // Укажите адрес фронтенда
+		AllowedMethods:   []string{"GET", "POST"},
+		AllowedHeaders:   []string{"Content-Type"},
+		AllowCredentials: true,
+	})
+
+	// Оборачиваем сервер в CORS-обработчик
+	handlerWithCors := c.Handler(mux)
+
+	log.Println("Сервер работает на порту 8080")
+	log.Fatal(http.ListenAndServe(":8080", handlerWithCors))
 }
