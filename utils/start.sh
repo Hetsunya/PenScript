@@ -1,7 +1,9 @@
 #!/bin/bash
 
 cd ../backend || exit
-nohup go run main.go > backend.log 2>&1 &
+go run main.go > backend.log 2>&1 &
+
+python ./NN/predict.py
 
 cd ../frontend || exit
 npm run dev

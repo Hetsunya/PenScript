@@ -36,12 +36,9 @@ type APIRequest struct {
 
 // APIResponse - структура ответа нашего API
 type APIResponse struct {
-	Text  string `json:"text"`
-	Error string `json:"error,omitempty"`
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "OK")
+	Text           string `json:"text,omitempty"`
+	PredictedClass string `json:"predicted_class,omitempty"`
+	Error          string `json:"error,omitempty"`
 }
 
 // sendOCRRequest отправляет изображение в Yandex OCR
@@ -65,7 +62,7 @@ func sendOCRRequest(encodedImage string) (*OCRResponse, error) {
 	}
 
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer t1.9euelZrHjJqLmsyNnYvLjsmPkc-Uie3rnpWalJ3GmszNz8ySzpOdys3HjZrl9PdxNDpB-e9Xchz73fT3MWM3QfnvV3Ic-83n9euelZqLm5KKl46TmIqezcnNy5SLjO_8xeuelZqLm5KKl46TmIqezcnNy5SLjA.FiXxkrVdyLjSFP41JEh9W0FCD8aAsoRi2-JhvSoHezRGzFxDiMnLpwDzGt3n99oPh2MhONQtw15okDcIPDyOBA")
+	req.Header.Add("Authorization", "Bearer t1.9euelZrOnYuRkJidnp7OjpzOk8iekO3rnpWalJ3GmszNz8ySzpOdys3HjZrl9Pd9dzVB-e9hK2303fT3PSYzQfnvYStt9M3n9euelZqKnIqdnZiYmZeUx5qUxsvMx-_8xeuelZqKnIqdnZiYmZeUx5qUxsvMxw.FSCOVqmAuP9V65U1-7W23QUSfn6utHPiw_auUzxLgb3YeI1ymSgoRLlO_7-1WLvBnnsdYV4dxO-u-kyf4xBuAQ")
 	req.Header.Add("x-folder-id", "b1g1g3i36s0esvqv39re")
 	req.Header.Add("x-data-logging-enabled", "true")
 
@@ -103,6 +100,43 @@ func sendOCRRequest(encodedImage string) (*OCRResponse, error) {
 	return &ocrResponse, nil
 }
 
+// sendToPython отправляет изображение в Python-скрипт для предсказания
+// func sendToPython(encodedImage string) (string, error) {
+// 	data := map[string]string{"image": encodedImage}
+// 	requestBody, err := json.Marshal(data)
+// 	if err != nil {
+// 		return "", fmt.Errorf("ошибка маршаллинга запроса: %v", err)
+// 	}
+//
+// 	url := "http://localhost:5000/predict"
+// 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(requestBody))
+// 	if err != nil {
+// 		return "", fmt.Errorf("ошибка создания запроса: %v", err)
+// 	}
+//
+// 	req.Header.Add("Content-Type", "application/json")
+//
+// 	client := &http.Client{}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		return "", fmt.Errorf("ошибка отправки запроса: %v", err)
+// 	}
+// 	defer resp.Body.Close()
+//
+// 	respBody, err := ioutil.ReadAll(resp.Body)
+// 	if err != nil {
+// 		return "", fmt.Errorf("ошибка чтения ответа: %v", err)
+// 	}
+//
+// 	var response map[string]string
+// 	err = json.Unmarshal(respBody, &response)
+// 	if err != nil {
+// 		return "", fmt.Errorf("ошибка разбора ответа: %v", err)
+// 	}
+//
+// 	return response["predicted_class"], nil
+// }
+
 // handleOCR - обработчик API для получения текста из изображения
 func handleOCR(w http.ResponseWriter, r *http.Request) {
 	var req APIRequest
@@ -111,20 +145,22 @@ func handleOCR(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Отправляем изображение в Yandex OCR
 	ocrResponse, err := sendOCRRequest(req.Image)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Проверяем, есть ли ошибка в ответе от Yandex OCR
-	if ocrResponse.Result.TextAnnotation.FullText == "" {
-		// Если текст пустой, возвращаем ошибку
-		json.NewEncoder(w).Encode(APIResponse{Error: "Не удалось распознать текст"})
+	// Отправляем изображение в Python-скрипт для предсказания
+	/*predictedClass, err := sendToPython(req.Image)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Возвращаем распознанный текст
+	Возвращаем распознанный текст и предсказанный класс
+	*/
 	json.NewEncoder(w).Encode(APIResponse{Text: ocrResponse.Result.TextAnnotation.FullText})
 }
 
@@ -134,9 +170,9 @@ func main() {
 
 	// Настройка CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173"}, // Укажите адрес фронтенда
+		AllowedOrigins:   []string{"http://localhost:*"}, // Укажите адрес фронтенда
 		AllowedMethods:   []string{"GET", "POST"},
-		AllowedHeaders:   []string{"Content-Type"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	})
 

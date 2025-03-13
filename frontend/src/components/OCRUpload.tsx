@@ -5,6 +5,7 @@ import "./OCRUpload.css";
 const OCRUpload = () => {
   const [image, setImage] = useState<File | null>(null);
   const [text, setText] = useState<string>("");
+  const [owner, setOwner] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
@@ -12,37 +13,42 @@ const OCRUpload = () => {
     const file = event.target.files?.[0];
     if (file) {
       setImage(file);
-      setText(""); 
-      setError(""); 
+      setText("");
+      setOwner("");
+      setError("");
     }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!image) return;
-  
+
     setLoading(true);
-    setError(""); 
-  
+    setError("");
+
     const reader = new FileReader();
     reader.onloadend = async () => {
-      const base64Image = reader.result?.toString().split(",")[1]; 
+      const base64Image = reader.result?.toString().split(",")[1];
       if (!base64Image) {
         setError("Не удалось прочитать изображение");
         setLoading(false);
         return;
       }
-  
+
       console.log("Отправляем изображение на сервер:", base64Image); // Отладочный вывод
-  
+
       try {
-        const response = await axios.post("http://localhost:8080/ocr", { image: base64Image }, {
-          headers: {
-            "Content-Type": "application/json",
-          },
+        const ocrResponse = await axios.post("http://localhost:8080/ocr", { image: base64Image }, {
+          headers: { "Content-Type": "application/json" },
         });
-        console.log("Ответ сервера:", response); // Ответ сервера
-        setText(response.data.text);
+        console.log("Ответ сервера OCR:", ocrResponse);
+        setText(ocrResponse.data.text);
+
+        const handwritingResponse = await axios.post("http://localhost:5000/predict", { image: base64Image }, {
+          headers: { "Content-Type": "application/json" },
+        });
+        console.log("Ответ сервера определения владельца:", handwritingResponse);
+        setOwner(handwritingResponse.data.predicted_class || "Не удалось определить владельца");
       } catch (err: any) {
         console.error("Ошибка при отправке запроса:", err);
         if (err.response) {
@@ -61,28 +67,33 @@ const OCRUpload = () => {
     };
     reader.readAsDataURL(image);
   };
-  
 
   return (
     <div className="ocr-upload-container">
-      <h1>Загрузка изображения для OCR</h1>
-      <form onSubmit={handleSubmit}>
-        <input type="file" accept="image/*" onChange={handleFileChange} />
-        <button type="submit" disabled={loading}>
-          {loading ? "Загрузка..." : "Отправить"}
-        </button>
-      </form>
-      {text && (
-        <div>
-          <h2>Распознанный текст:</h2>
-          <pre>{text}</pre>
-        </div>
-      )}
-      {error && (
-        <div className="error">
-          <p>{error}</p>
-        </div>
-      )}
+    <h1>Загрузка изображения для OCR</h1>
+    <form onSubmit={handleSubmit}>
+    <input type="file" accept="image/*" onChange={handleFileChange} />
+    <button type="submit" disabled={loading}>
+    {loading ? "Загрузка..." : "Отправить"}
+    </button>
+    </form>
+    {text && (
+      <div>
+      <h2>Распознанный текст:</h2>
+      <pre>{text}</pre>
+      </div>
+    )}
+    {owner && (
+      <div>
+      <h2>Предполагаемый владелец почерка:</h2>
+      <pre>{owner}</pre>
+      </div>
+    )}
+    {error && (
+      <div className="error">
+      <p>{error}</p>
+      </div>
+    )}
     </div>
   );
 };
